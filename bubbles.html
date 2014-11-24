@@ -1,0 +1,136 @@
+<!-- 
+  Original Demo: http://bl.ocks.org/mbostock/4063269 
+-->
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+text {
+  font: 10px sans-serif;
+}
+
+</style>
+<body>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script>
+
+    var xmlhttp = new XMLHttpRequest();
+    var url = "uea.json";
+
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+            var arr0 = xmlhttp.responseText;
+            var arr1 = arr0.substring(1);
+            var arr2 = arr1.substring(0, arr1.length - 2)
+            var myArr = JSON.parse(arr2);
+            myFunction(myArr);
+        }
+    }
+    xmlhttp.open("GET", url, true);
+    xmlhttp.send();
+
+    function myFunction(arr) {
+        var myData = {
+           "name": "flare",
+           "children": [
+           {
+              "name": "arts",
+              "children": []
+          },
+          {
+              "name": "itcs",
+              "children": []
+          },
+          {
+              "name": "library",
+              "children": []
+          }
+
+          ]};
+
+          var artsChildren = [];
+          var itcsChildren = [];
+          var libraryChildren = [];
+
+          for (var key in arr){
+
+            if (key === "room_availability"){
+                var room = arr[key];
+                for (element in room){
+                    if (room[element].group === "arts"){
+                        artsChildren.push({"name": room[element].room, "size": room[element].free_seats});
+                    };
+                    if (room[element].group === "itcs"){
+                        itcsChildren.push({"name": room[element].room, "size": room[element].free_seats});
+                    };
+                    if (room[element].group === "library"){
+                        libraryChildren.push({"name": room[element].room, "size": room[element].free_seats});
+                    };
+                    
+                }
+            }
+        }
+
+        myData["children"][0]["children"] = artsChildren;
+        myData["children"][1]["children"] = itcsChildren;
+        myData["children"][2]["children"] = libraryChildren;
+        myJSON = JSON.stringify(myData);
+        console.log(myJSON);
+
+        var diameter = 960,
+        format = d3.format(",d"),
+        color = d3.scale.category20c();
+
+        var bubble = d3.layout.pack()
+        .sort(null)
+        .size([diameter, diameter])
+        .padding(1.5);
+
+        var svg = d3.select("body").append("svg")
+        .attr("width", diameter)
+        .attr("height", diameter)
+        .attr("class", "bubble");
+
+        root = JSON.parse( myJSON );
+        var node = svg.selectAll(".node")
+        .data(bubble.nodes(classes(root))
+          .filter(function(d) { return !d.children; }))
+        .enter().append("g")
+        .attr("class", "node")
+        .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+        node.append("title")
+        .text(function(d) { return d.className + ": " + format(d.value); });
+
+        node.append("circle")
+        .attr("r", function(d) { return d.r; })
+        .style("fill", function(d) { return color(d.packageName); });
+
+        node.append("text")
+        .attr("dy", ".3em")
+        .style("text-anchor", "middle")
+        .text(function(d) { return d.className.substring(0, d.r / 3); });
+
+// Returns a flattened hierarchy containing all leaf nodes under the root.
+function classes(root) {
+  var classes = [];
+
+  function recurse(name, node) {
+    if (node.children) node.children.forEach(function(child) { recurse(node.name, child); });
+    else classes.push({packageName: name, className: node.name, value: node.size});
+}
+
+recurse(null, root);
+return {children: classes};
+}
+
+d3.select(self.frameElement).style("height", diameter + "px");
+
+}
+
+
+
+
+
+</script>

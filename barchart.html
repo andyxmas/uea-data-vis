@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link media="all" rel="stylesheet" type="text/css" href="plot.css" />
+</head>
+<body>
+
+<div class="bar-chart stacked pad">
+    <ul class="plot-container group-by-number" id="charts">
+
+    </ul>
+</div>
+
+<script>
+var xmlhttp = new XMLHttpRequest();
+var url = "uea.json";
+
+xmlhttp.onreadystatechange = function() {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+        var arr0 = xmlhttp.responseText;
+        var arr1 = arr0.substring(1);
+        var arr2 = arr1.substring(0, arr1.length - 2)
+        var myArr = JSON.parse(arr2);
+        myFunction(myArr);
+    }
+}
+xmlhttp.open("GET", url, true);
+xmlhttp.send();
+
+function myFunction(arr) {
+    var out = "";
+    for (var key in arr){
+
+        if (key === "room_availability"){
+            var room = arr[key];
+            for (element in room){
+
+                out += '<li><span>' + room[element].room + ': </span><div data-cp-size="' + room[element].free_seats + '">' + room[element].free_seats + '</div><div data-cp-size="' + (room[element].max_seats - room[element].free_seats) + '" data-group="5"></div></li>';
+
+            }
+        }
+    }
+
+    document.getElementById("charts").innerHTML = out;
+}
+</script>
+
+</body>
+</html>
